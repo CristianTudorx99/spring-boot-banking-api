@@ -32,7 +32,7 @@ public class UserController {
     public UserDTO createUser(@Valid @RequestBody CreateUserRequest request) {
         User user = new User(request.getId(), request.getName());
         User createdUser = bankService.createUser(user);
-        return userMapper.toDTO(user);
+        return userMapper.toDTO(createdUser);
     }
 
     @GetMapping()

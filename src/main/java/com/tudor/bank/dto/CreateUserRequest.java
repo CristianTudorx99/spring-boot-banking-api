@@ -5,10 +5,10 @@ import jakarta.validation.constraints.Positive;
 
 public class CreateUserRequest {
 
-    @Positive(message = "user id must be grater than zero. ")
+    @Positive(message = "User id must be greater than zero.")
     private int id;
 
-    @NotBlank(message = "Name cannot be blank")
+    @NotBlank(message = "Name cannot be blank.")
     private String name;
 
     public CreateUserRequest() {
