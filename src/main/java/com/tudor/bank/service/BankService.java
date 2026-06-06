@@ -42,18 +42,14 @@ public class BankService {
     }
 
     public BankAccount createAccountForUser(int userId, BankAccount account) {
-        for (User existingUser : userRepository.findAll()) {
-            for (BankAccount existingAccount : existingUser.getAccounts()) {
-                if (existingAccount.getAccountNumber() == account.getAccountNumber()) {
-                    throw new DuplicateAccountException("Account with number " + account.getAccountNumber() + " already exists.");
-                }
-            }
+        if (bankAccountRepository.existsById(account.getAccountNumber())) {
+            throw new DuplicateAccountException("Account with number " + account.getAccountNumber() + " already exists.");
         }
 
         User user = getUserById(userId);
         user.addAccount(account);
 
-        userRepository.save(user);
+        bankAccountRepository.save(account);
 
         return account;
     }

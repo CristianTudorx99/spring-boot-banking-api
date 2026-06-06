@@ -2,20 +2,28 @@ package com.tudor.bank.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import static org.mockito.Mockito.anyInt;
 
 import java.util.List;
 import java.util.Optional;
 
+import com.tudor.bank.exception.AccountNotFoundException;
+import com.tudor.bank.exception.DuplicateAccountException;
 import com.tudor.bank.exception.DuplicateUserException;
+import com.tudor.bank.exception.InsufficientBalanceException;
+import com.tudor.bank.exception.InvalidAmountException;
 import com.tudor.bank.exception.UserNotFoundException;
+import com.tudor.bank.model.BankAccount;
+import com.tudor.bank.model.Transaction;
+import com.tudor.bank.model.TransactionType;
 import com.tudor.bank.model.User;
 import com.tudor.bank.repository.BankAccountRepository;
 import com.tudor.bank.repository.TransactionRepository;
@@ -118,5 +126,130 @@ public class BankServiceTest {
         assertThrows(UserNotFoundException.class, () -> bankService.getUserById(99));
 
         verify(userRepository).findById(99);
+    }
+
+    @Test
+    void createAccountForUser_shouldSaveAccount_whenAccountNumberDoesNotExist() {
+        // Arrange
+        User user = new User(1, "Tudor");
+
+        BankAccount account = new BankAccount();
+        account.setAccountNumber(1001);
+        account.setBalance(500);
+
+        when(bankAccountRepository.existsById(1001)).thenReturn(false);
+        when(userRepository.findById(1)).thenReturn(Optional.of(user));
+        when(bankAccountRepository.save(account)).thenReturn(account);
+
+        // Act
+        BankAccount result = bankService.createAccountForUser(1, account);
+
+        // Assert
+        assertEquals(1001, result.getAccountNumber());
+        assertEquals(500, result.getBalance());
+        assertEquals(user, result.getUser());
+
+        verify(bankAccountRepository).existsById(1001);
+        verify(userRepository).findById(1);
+        verify(bankAccountRepository).save(account);
+    }
+
+    @Test
+    void createAccountForUser_shouldThrowDuplicateAccountException_whenAccountNumberAlreadyExists() {
+        // Arrange
+        BankAccount account = new BankAccount();
+        account.setAccountNumber(1001);
+        account.setBalance(500);
+
+        when(bankAccountRepository.existsById(1001)).thenReturn(true);
+
+        // Act + Assert
+        assertThrows(DuplicateAccountException.class, () -> bankService.createAccountForUser(1, account));
+
+        verify(bankAccountRepository).existsById(1001);
+        verify(userRepository, never()).findById(anyInt());
+        verify(bankAccountRepository, never()).save(any(BankAccount.class));
+    }
+
+    @Test
+    void deposit_shouldIncreaseBalanceAndCreateDepositTransaction_whenAmountIsValid() {
+        // Arrange
+        BankAccount account = new BankAccount();
+        account.setAccountNumber(1001);
+        account.setBalance(500);
+
+        when(bankAccountRepository.findById(1001)).thenReturn(Optional.of(account));
+        when(bankAccountRepository.save(account)).thenReturn(account);
+
+        // Act
+        BankAccount result = bankService.deposit(1001, 100);
+
+        // Assert
+        assertEquals(600, result.getBalance());
+        assertEquals(1, result.getTransactions().size());
+        assertEquals(TransactionType.DEPOSIT, result.getTransactions().get(0).getType());
+        assertEquals(100, result.getTransactions().get(0).getAmount());
+
+        verify(bankAccountRepository).findById(1001);
+        verify(bankAccountRepository).save(account);
+    }
+
+    @Test
+    void withdraw_shouldDecreaseBalanceAndCreateWithdrawalTransaction_whenAmountIsValid() {
+        // Arrange
+        BankAccount account = new BankAccount();
+        account.setAccountNumber(1001);
+        account.setBalance(500);
+
+        when(bankAccountRepository.findById(1001)).thenReturn(Optional.of(account));
+        when(bankAccountRepository.save(account)).thenReturn(account);
+
+        // Act
+        BankAccount result = bankService.withdraw(1001, 100);
+
+        // Assert
+        assertEquals(400, result.getBalance());
+        assertEquals(1, result.getTransactions().size());
+        assertEquals(TransactionType.WITHDRAWAL, result.getTransactions().get(0).getType());
+        assertEquals(100, result.getTransactions().get(0).getAmount());
+
+        verify(bankAccountRepository).findById(1001);
+        verify(bankAccountRepository).save(account);
+    }
+
+    @Test
+    void withdraw_shouldThrowInsufficientBalanceException_whenAmountIsGreaterThanBalance() {
+        // Arrange
+        BankAccount account = new BankAccount();
+        account.setAccountNumber(1001);
+        account.setBalance(50);
+
+        when(bankAccountRepository.findById(1001)).thenReturn(Optional.of(account));
+
+        // Act + Assert
+        assertThrows(InsufficientBalanceException.class, () -> bankService.withdraw(1001, 100));
+
+        verify(bankAccountRepository).findById(1001);
+        verify(bankAccountRepository, never()).save(any(BankAccount.class));
+    }
+
+    @Test
+    void deposit_shouldThrowInvalidAmountException_whenAmountIsZeroOrNegative() {
+        // Act + Assert
+        assertThrows(InvalidAmountException.class, () -> bankService.deposit(1001, 0));
+        assertThrows(InvalidAmountException.class, () -> bankService.deposit(1001, -100));
+
+        verify(bankAccountRepository, never()).findById(anyInt());
+        verify(bankAccountRepository, never()).save(any(BankAccount.class));
+    }
+
+    @Test
+    void withdraw_shouldThrowInvalidAmountException_whenAmountIsZeroOrNegative() {
+        // Act + Assert
+        assertThrows(InvalidAmountException.class, () -> bankService.withdraw(1001, 0));
+        assertThrows(InvalidAmountException.class, () -> bankService.withdraw(1001, -100));
+
+        verify(bankAccountRepository, never()).findById(anyInt());
+        verify(bankAccountRepository, never()).save(any(BankAccount.class));
     }
 }
