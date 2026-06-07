@@ -5,7 +5,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 
 public class CreateAccountRequest {
 
-    @Positive(message = "Account number must be grater than zero.")
+    @Positive(message = "Account number must be greater than zero.")
     private int accountNumber;
 
     @PositiveOrZero(message = "Initial balance cannot be negative.")

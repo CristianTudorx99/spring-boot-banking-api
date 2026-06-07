@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Positive;
 
 public class AmountRequest {
 
-    @Positive(message = "Amount must be grater than zero.")
+    @Positive(message = "Amount must be greater than zero.")
     private double amount;
 
     public AmountRequest() {}
