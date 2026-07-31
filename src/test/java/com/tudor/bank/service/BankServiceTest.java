@@ -252,4 +252,31 @@ public class BankServiceTest {
         verify(bankAccountRepository, never()).findById(anyInt());
         verify(bankAccountRepository, never()).save(any(BankAccount.class));
     }
+
+    @Test
+    void findAccountByNumber_shouldReturnAccount_whenAccountExists() {
+        BankAccount account = new BankAccount();
+        account.setAccountNumber(1001);
+        account.setBalance(500);
+
+        when(bankAccountRepository.findById(1001)).thenReturn(Optional.of(account));
+
+        BankAccount result = bankService.findAccountByNumber(1001);
+
+        assertEquals(1001, result.getAccountNumber());
+        assertEquals(500, result.getBalance());
+
+        verify(bankAccountRepository).findById(1001);
+    }
+
+    @Test
+    void findAccountByNumber_shouldThrowAccountNotFoundException_whenAccountDoesNotExist() {
+        when(bankAccountRepository.findById(9999)).thenReturn(Optional.empty());
+
+        assertThrows(AccountNotFoundException.class, () -> {
+            bankService.findAccountByNumber(9999);
+        });
+
+        verify(bankAccountRepository).findById(9999);
+    }
 }
