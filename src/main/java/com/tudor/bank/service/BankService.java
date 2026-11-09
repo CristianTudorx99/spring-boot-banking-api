@@ -65,7 +65,7 @@ public class BankService {
 
     public BankAccount deposit(int accountNumber, double amount) {
         if (amount <= 0) {
-            throw new InvalidAmountException("Deposit amount must be grater than zero.");
+            throw new InvalidAmountException("Deposit amount must be greater than zero.");
         }
 
         BankAccount account = findAccountByNumber(accountNumber);
@@ -77,7 +77,7 @@ public class BankService {
 
     public BankAccount withdraw(int accountNumber, double amount) {
         if (amount <= 0) {
-            throw new InvalidAmountException("Withdrawal amount must be grater than zero.");
+            throw new InvalidAmountException("Withdrawal amount must be greater than zero.");
         }
 
         BankAccount account = findAccountByNumber(accountNumber);
