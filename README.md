@@ -1,3 +1,13 @@
+A REST API for a simple banking system: users, bank accounts, deposits,
+withdrawals and transaction history.
+
+**Tech:** Java 17 · Spring Boot 4 · Spring Data JPA · H2 · JUnit 5 · Mockito · MockMvc
+**Highlights:** 8 REST endpoints · layered architecture with DTOs and mappers ·
+global exception handling · 28 automated tests
+
+### Quick start
+./mvnw spring-boot:run      # then open http://localhost:8081
+./mvnw test                 # runs all tests
 # Banking System REST API
 
 A Java Spring Boot banking application built as a portfolio project.
@@ -6,8 +16,8 @@ This project started as a console-based Java banking system and was gradually co
 
 ## Technologies Used
 
-- Java
-- Spring Boot
+- Java 17
+- Spring Boot 4.0.5
 - Spring Web MVC
 - Spring Data JPA
 - H2 Database
@@ -218,10 +228,6 @@ automated tests
             =
 Spring Boot REST API
 ```
-
-A simple way to remember the migration is:
-
-> **Same banking brain, new front door, better storage.**
 
 ## Project Structure
 
@@ -704,3 +710,6 @@ Possible future improvements:
 - Add Docker support
 - Add pagination for larger datasets
 - Add GitHub Actions to run tests automatically
+- Use BigDecimal instead of double for money, to avoid rounding errors
+- Make withdrawals safe under concurrent requests (@Transactional with optimistic or pessimistic locking)
+- Let the database generate user and account IDs instead of the client sending them
